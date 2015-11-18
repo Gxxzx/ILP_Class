@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<canvas id = "canvas" width = "1000" height = "500"></canvas>
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.0.js"></script>
+<script>
+	var canvas = document.getElementById('canvas');
+	var ctx = canvas.getContext("2d");
+	var a = [];
+	var arr = [];
+	for (var j = 0; j < 2400; j++)
+		a.push(0);
+	for (var i = 0; i < 40; i++)
+		arr.push(a.slice(i*60, (i + 1) * 60));
+	arr[1][1] = 1;
+	arr[1][2] = 1;
+	arr[1][3] = 1;
+	
+	function position(y, x){
+		this.y = y;
+		this.x = x;
+	}
+	var b = [];
+	b[0] = new position(1,3)
+	b[1] = new position(1,2)
+	b[2] = new position(1,1)
+
+	//Object constructor
+	function Snake(arr,b){
+		this.arr = arr;
+		this.headX = 4;
+		this.headY = 1;
+		this.endX = 1;
+		this.endY = 1;
+		this.interval = 100;
+		this.length = 3;
+		this.dX = 1;
+		this.dY = 0;
+		this.dx = 1;
+		this.dy = 0;
+		this.food = true;
+		this.direction;
+		this.position = b;
+	}
+	
+	//pick the random foodpoint
+	Snake.prototype.pickFoodpoint = function(){
+		while (true){
+			var i = Math.floor(Math.random() * 37 + 1);
+			var j = Math.floor(Math.random() * 58 + 1);
+			if (this.arr[i][j] === 0)
+				break;
+		}
+		this.arr[i][j] = 2;
+	}
+
+	//Draw the snake, the food and the frame
+	Snake.prototype.drawScreen = function() {
+		ctx.clearRect(0, 0, 600, 400);
+		ctx.font = "20px Comic Sans MS";
+		ctx.fillStyle = "black";
+		ctx.textAlign = "top";
+		ctx.fillText("Score: " + (snake.length - 3), 20, 40)
+		for (var i = 0; i < 40; i++)
+		{
+			for (var j = 0; j < 60; j++){
+				if (this.arr[i][j] === 1){
+					ctx.strokeRect(j * 10, i * 10, 10, 10);
+					ctx.fillStyle = "green";
+					ctx.fillRect(j * 10 + 1, i * 10 + 1, 8, 8);
+				}
+				if (this.arr[i][j] === 2){
+					ctx.fillStyle = "blue";
+					ctx.fillRect(j * 10, i * 10, 10, 10);
+				}
+			}
+		}
+		ctx.strokeRect(10, 10, 580, 380);
+	};
+
+	//Move the head and the end of the snake respectively (must be in front of the drawSceen function)
+	Snake.prototype.move = function(){
+		this.arr[this.headY][this.headX] = 1;
+		this.arr[this.position[this.length - 1].y][this.position[this.length - 1].x] = 0;
+		console.log(this.position[this.length - 1].x);
+//		this.arr[this.endY][this.endX] = 0;
+		this.position.unshift(new position(this.headY, this.headX));
+		this.headY += this.dY;
+		this.headX += this.dX;
+
+/*		if (this.arr[this.endY + this.dy][this.endX + this.dx] != 1)
+		{
+			if (this.arr[this.endY + 1][this.endX] === 1)
+			{
+				this.dy = 1;
+				this.dx = 0;
+			}
+			if (this.arr[this.endY][this.endX + 1] === 1)
+			{
+				this.dy = 0;
+				this.dx = 1;
+			}
+			if (this.arr[this.endY - 1][this.endX] === 1)
+			{
+				this.dy = -1;
+				this.dx = 0;
+			}
+			if (this.arr[this.endY][this.endX - 1] === 1)
+			{
+				this.dy = 0;
+				this.dx = -1;
+			}
+		}
+		this.endY += this.dy;
+		this.endX += this.dx;*/
+	}
+
+	//Change the direction of the snake
+	Snake.prototype.setDirection = function(direction){
+		var Dx = this.dX;
+		var Dy = this.dY;
+		switch (direction){
+			case "up":
+				this.dX = 0;
+		    	this.dY = -1;
+		    break;
+		    case "down":
+		    	this.dX = 0;
+		    	this.dY = 1;
+		    break;
+		    case "left":
+		        this.dX = -1;
+		        this.dY = 0;
+		    break;
+		    case "right":
+		    	this.dX = 1;
+		    	this.dY = 0;
+		    break;
+		}
+		if (Dx === -this.dX && Dy === -this.dY)
+		{
+			this.dX = Dx;
+			this.dY = Dy;
+		}
+	}
+
+	//Eat the food and at the same time add the length of the snake
+	Snake.prototype.eat = function(){
+		if (this.arr[this.headY][this.headX] === 2)
+		{
+			this.arr[this.headY][this.headX] = 1;
+			this.position.unshift(new position(this.headY, this.headX));
+			this.headY += this.dY;
+			this.headX += this.dX
+			this.length += 1;
+			this.food = true;
+			this.interval = 100 - 10 * this.length;
+			if (this.interval = 0)
+				this.interval = 5;
+		}
+	}
+
+	//Check if the snake has hit the frame of hit it self
+	Snake.prototype.check = function(){
+		if (this.headX === 0 || this.headX === 59 || this.headY === 0 || this.headY === 39 || this.arr[this.headY][this.headX] === 1)
+			return true;
+		else
+			return false;
+	}
+
+	
+
+
+	//Main
+	var snake = new Snake(arr, b);
+	var keyNames = {
+		37:'left',
+		38:'up',
+		39:'right',
+		40:'down'
+	}
+	$("body").keydown(function(event){
+		snake.direction = (keyNames[event.keyCode]);
+	});
+	var game = setInterval(function(){
+		if (snake.food)
+		{
+			snake.pickFoodpoint();
+			snake.food = false;
+		}
+		snake.setDirection(snake.direction);
+		snake.eat(); 
+		snake.move();
+		snake.drawScreen();
+		if (snake.check())
+			gameOver()
+	}, snake.interval)
+	
+	function gameOver(){
+		clearInterval(game);
+		ctx.font = "50px Comic Sans MS";
+		ctx.fillStyle = "red";
+		ctx.textAlign = "center";
+		ctx.fillText("You Lose :-("+ '\n' + "Score: " + (snake.length - 3), 300, 200);}
+</script>
+
+
+</body>
+</html>
